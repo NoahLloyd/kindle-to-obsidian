@@ -62,6 +62,8 @@ def get_default_config() -> Dict[str, Any]:
             'short_notes_filename': 'Short Notes.md',
             'default_tag': 'books',
             'short_notes_tag': 'short-notes',
+            'create_import_log': True,
+            'import_log_folder': 'Import Logs',
         },
         'frontmatter': {
             'include_author': True,

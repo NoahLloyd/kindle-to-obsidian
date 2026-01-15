@@ -32,6 +32,8 @@ class FormattingFrame(ttk.LabelFrame):
         self.short_notes_tag_var = tk.StringVar()
         self.include_author_var = tk.BooleanVar()
         self.include_tags_var = tk.BooleanVar()
+        self.create_import_log_var = tk.BooleanVar()
+        self.import_log_folder_var = tk.StringVar()
         
         self._create_widgets()
         self._load_from_settings()
@@ -176,6 +178,62 @@ class FormattingFrame(ttk.LabelFrame):
             command=self._on_include_tags_change
         )
         self.include_tags_check.grid(row=1, column=0, sticky="w")
+        
+        row += 1
+        
+        # Separator
+        ttk.Separator(self, orient="horizontal").grid(
+            row=row, column=0, columnspan=2, sticky="ew", pady=10
+        )
+        
+        row += 1
+        
+        # Import log options
+        ttk.Label(self, text="Import Log:").grid(
+            row=row, column=0, sticky="nw", pady=3
+        )
+        
+        import_log_frame = ttk.Frame(self)
+        import_log_frame.grid(row=row, column=1, sticky="w", pady=3)
+        
+        self.create_import_log_check = ttk.Checkbutton(
+            import_log_frame,
+            text="Create import log for each sync",
+            variable=self.create_import_log_var,
+            command=self._on_create_import_log_change
+        )
+        self.create_import_log_check.grid(row=0, column=0, sticky="w", columnspan=2)
+        
+        ttk.Label(
+            import_log_frame,
+            text="(tracks new highlights per sync)",
+            foreground="gray"
+        ).grid(row=0, column=2, padx=(10, 0))
+        
+        row += 1
+        
+        # Import log folder name
+        ttk.Label(self, text="Import log folder:").grid(
+            row=row, column=0, sticky="w", pady=3
+        )
+        
+        import_folder_frame = ttk.Frame(self)
+        import_folder_frame.grid(row=row, column=1, sticky="w", pady=3)
+        
+        self.import_log_folder_entry = ttk.Entry(
+            import_folder_frame,
+            textvariable=self.import_log_folder_var,
+            width=20
+        )
+        self.import_log_folder_entry.grid(row=0, column=0)
+        self.import_log_folder_entry.bind('<FocusOut>', lambda e: self._on_import_log_folder_change())
+        self.import_log_folder_entry.bind('<Return>', lambda e: self._on_import_log_folder_change())
+        
+        ttk.Label(
+            import_folder_frame,
+            text="(subfolder in output directory)",
+            foreground="gray"
+        ).grid(row=0, column=1, padx=(10, 0))
     
     def _load_from_settings(self):
         """Load values from settings."""
@@ -196,6 +254,12 @@ class FormattingFrame(ttk.LabelFrame):
         )
         self.include_tags_var.set(
             self.settings.get('frontmatter', 'include_tags', default=True)
+        )
+        self.create_import_log_var.set(
+            self.settings.get('output', 'create_import_log', default=True)
+        )
+        self.import_log_folder_var.set(
+            self.settings.get('output', 'import_log_folder', default='Import Logs')
         )
     
     def _save_and_notify(self):
@@ -247,4 +311,16 @@ class FormattingFrame(ttk.LabelFrame):
         """Handle include tags checkbox change."""
         self.settings.set('frontmatter', 'include_tags', self.include_tags_var.get())
         self._save_and_notify()
+    
+    def _on_create_import_log_change(self):
+        """Handle create import log checkbox change."""
+        self.settings.set('output', 'create_import_log', self.create_import_log_var.get())
+        self._save_and_notify()
+    
+    def _on_import_log_folder_change(self):
+        """Handle import log folder name change."""
+        value = self.import_log_folder_var.get().strip()
+        if value:
+            self.settings.set('output', 'import_log_folder', value)
+            self._save_and_notify()
 
